@@ -45,8 +45,7 @@ def kinn_loss(outputs, targets, inputs, a, b, e, d):
     residual = torch.nan_to_num(residual, nan=0.0, posinf=1e10, neginf=-1e10)
 
     mean_sq = torch.mean(residual ** 2)
-    if mean_sq.item() > 0:
-        residual = residual * torch.sqrt(mse / mean_sq)
+    residual = residual * torch.sqrt(mse / (mean_sq + 1e-8))
 
     return 0.5 * mse + 0.5 * torch.mean(residual)
 
@@ -88,33 +87,36 @@ def main():
     X_raw = df[FEATURES].values
     y_raw = df[TARGET].values
 
-    # 2. Fit empirical equation to get physical parameters
     def fc_model(X, a, b, e, d):
-        AGE = X[:, 0]
+        AGE = np.maximum(X[:, 0], 1e-6)
         wb  = X[:, WB_INDEX]
         return (a * np.log(AGE) + b) * (e * AGE ** d) ** (-wb)
 
-    params, _ = curve_fit(fc_model, X_raw, y_raw, p0=[1.0, 1.0, 1.0, 1.0])
-    a, b, e, d = params
-    print(f"Empirical params: a={a:.4f}, b={b:.4f}, e={e:.4f}, d={d:.4f}")
-
-    # 3. Scale features and target
+    # 2. Global scalers — fit on all data, then split
     scaler   = StandardScaler()
     y_scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_raw)
     y_scaled = y_scaler.fit_transform(y_raw.reshape(-1, 1))
-    y_std    = y_scaler.scale_[0]
 
-    X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-    y_tensor = torch.tensor(y_scaled, dtype=torch.float32).view(-1, 1)
-
-    # 4. Fixed train/test split (variability comes only from random weight init)
-    Xtrain, Xtest, ytrain, ytest = train_test_split(
-        X_tensor, y_tensor, train_size=TRAIN_SIZE, random_state=RANDOM_STATE
+    # 3. Fixed train/test split (same partition for all 100 runs)
+    X_tr, X_te, y_tr, y_te = train_test_split(
+        X_scaled, y_scaled, train_size=TRAIN_SIZE, random_state=RANDOM_STATE
     )
 
-    # 5. Run 100 times
+    # 4. Fit empirical coefficients on the training partition (raw units)
+    X_tr_raw = scaler.inverse_transform(X_tr)
+    y_tr_raw = y_scaler.inverse_transform(y_tr).ravel()
+    params, _ = curve_fit(fc_model, X_tr_raw, y_tr_raw, p0=[1.0, 1.0, 1.0, 1.0],
+                          maxfev=10000)
+    a, b, e, d = params
+    print(f"Physical params: a={a:.4f}, b={b:.4f}, e={e:.4f}, d={d:.4f}")
+
+    # 5. Run 100 independent random weight initialisations on the same split
     os.makedirs(MODEL_DIR, exist_ok=True)
+    Xtrain = torch.tensor(X_tr, dtype=torch.float32)
+    Xtest  = torch.tensor(X_te, dtype=torch.float32)
+    ytrain = torch.tensor(y_tr, dtype=torch.float32)
+    ytest  = torch.tensor(y_te, dtype=torch.float32)
     records = []
 
     for i in range(N_RUNS):
