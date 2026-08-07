@@ -1,9 +1,5 @@
 # KINN: Knowledge-Informed Neural Network for Concrete Compressive Strength Prediction
 
-This repository contains the code for the paper:
-
-> **Knowledge-Informed Neural Network for Concrete Compressive Strength Prediction**
-> Tianjie Zhang et al.
 
 ---
 
@@ -173,21 +169,3 @@ python scripts/ablation_loss_variants.py
 python scripts/grouped_validation.py
 ```
 
----
-
-## Key Outputs
-
-| Script | Output files |
-|--------|-------------|
-| `train_kinn_100times.py` | `model_evaluation_metrics_with_scaled.xlsx` |
-| `train_ann_100times.py` | `ANN_best_trial_results.xlsx` |
-| `train_xgb_100times.py` | `XGBoost_best_trial_results.xlsx` |
-| `train_rf_100times.py` | `RandomForest_best_trial_results.xlsx` |
-| `train_svr_100times.py` | `SVR_best_trial_results.xlsx` |
-| `train_knn_100times.py` | `KNN_best_trial_results.xlsx` |
-| `empirical_equation.py` | `empirical_equation_results.xlsx` |
-| `shap_analysis.py` | `KINN_summary_plot.png`, `KINN_bar_plot.png`, `ANN_shap_summary_plot.png`, `shap_mean_absolute_bar_plot_ranked.png` |
-| `sensitivity_analysis.py` | `KINN_hybrid_results.xlsx`, `hybrid_sensitivity_plot.png` |
-| `pdp_plots.py` | `PDP_*.png` |
-| `ablation_loss_variants.py` | `ablation_results.xlsx`, `ablation_summary.png` |
-| `grouped_validation.py` | `grouped_cv_results.xlsx`, `grouped_cv_summary.xlsx` |
