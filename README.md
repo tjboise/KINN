@@ -1,5 +1,7 @@
 # KINN: Knowledge-Informed Neural Network for Concrete Compressive Strength Prediction
 
+**Published in *Applied Soft Computing*:**
+> Zhang, T. et al. (2026). Knowledge-Informed Neural Network for Reliable and Explainable Concrete Compressive Strength Prediction. *Applied Soft Computing*. [https://doi.org/10.1016/j.asoc.2026.113887](https://www.sciencedirect.com/science/article/pii/S1568494626017965)
 
 ---
 
